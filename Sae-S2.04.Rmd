@@ -1,0 +1,157 @@
+---
+title: "Sae S2.04"
+output:
+  html_document:
+    toc: yes
+    always_allow_html: true
+  word_document:
+    toc: yes
+  pdf_document: default
+---
+
+```{r echo=FALSE, message=FALSE}
+gaua <- read.delim("gaua.csv", header=TRUE)
+```
+
+The Nutri-Score is a food product rating system, assigning a grade ranging from "A" to "E". It is calculated using an algorithm based on points allocated according to the quantity of energy, simple sugars, saturated fatty acids, sodium, fibers, and proteins.
+
+Our study will focus on the relationship between Nutri-Score and pizzas, pies, and quiches in the United States. Our dataset contains approximately 3000 products.
+
+1. Initially, we will analyze the distribution of Nutri-Scores for all products in the category.
+
+2. Subsequently, we will observe the percentage of organic products for each Nutri-Score category.
+
+3. Following that, we will examine the saturated fat composition according to Nutri-Score.
+
+4. We will then assess the percentage of vegetarian products for each Nutri-Score category.
+
+5. Finally, we will analyze the Amount of sugar in pizzas, pies and quiches according to Nutriscore
+
+# 1 - Distribution table of Nutri-Score for pizzas, pies, and quiches:
+```{r echo=FALSE, message=FALSE}
+gaua <- read.delim("gaua.csv", header=TRUE)
+# Charger la bibliothèque ggplot2
+library(ggplot2)
+library(tidyverse)
+
+# Créer une variable pour les catégories de Nutriscore
+gaua$nutriscore_category <- cut(gaua$nutriscore_score, breaks = c(-Inf, 0, 3, 10, 18, Inf),
+                                labels = c("A", "B", "C", "D", "E"), include.lowest = TRUE)
+
+# Définir une palette de couleurs pour les catégories de Nutriscore
+nutriscore_colors <- c("A" = "#1ABC9C", "B" = "#2ECC71", "C" = "#F1C40F", "D" = "#E67E22", "E" = "#E74C3C")
+
+# Afficher un histogramme du score de nutriscore pour la catégorie "en:pizza-pies-and-quiches"
+ggplot(gaua, aes(x = nutriscore_score, fill = nutriscore_category)) +
+  geom_histogram(binwidth = 1, color = "black") +
+  scale_fill_manual(values = nutriscore_colors) +
+  labs(title = "Distribution table of Nutri-Score for pizzas, pies, and quiches",
+       y = "Number of product") +
+  scale_x_continuous(breaks = seq(min(gaua$nutriscore_score), max(gaua$nutriscore_score), by = 5))
+```
+
+This histogram visualizes the distribution of products based on their nutriscore. Firstly, we can distinguish two segments regarding pizzas, quiches, and pies those where the nutriscore is higher than 10, meaning that the nutriscore is D and those were it is lower than 6 meaning that the nutriscore is either A or B.
+
+this separation is due to a negative peek in the middle of the C category, indeed most of the product in the C category have a nutriscore close to a B nutriscore or a D one
+
+we can then deduce that products in the Pizzas, Quiches, and Pies category are generally at the two extremes, either well-rated or poorly rated.
+
+
+# 2 - Percentage of organic products for each Nutri-Score category
+```{r echo=FALSE, message=FALSE}
+
+ggplot(gaua, aes(x = nutriscore_grade, fill = organic)) +
+  geom_bar(position = "stack") +
+  labs(title = "Distribution of organic products by Nutriscore Grade",
+       x = "Nutriscore Grade",
+       y = "Number of product",
+       fill = "Bio") +
+  theme_minimal()
+```
+
+```{r echo=FALSE, message=FALSE}
+
+count_t <- sum(gaua$organic == "t", na.rm = TRUE)
+
+total_count <- nrow(gaua)
+
+
+cat("Number of Organic product :", count_t,"\n Total number of products", total_count, "\n percentage of organic product on this dataset : ", (count_t/total_count)*100, "% ")
+
+
+```
+
+This second histogram show the percentage of organic product (in blue) compared to the rest of the product in the same nutriscore category
+we can  deduce from the data that we have here that being an organic product or not doesn't necessarily means a better nutriscore grade and that, in general, pizza quiche and pie aren't really the type of product to be organic, in fact , when we are counting the number of organic product compared to the total product we observe that the number of organic prodcut is insignificant compared to the rest
+But we have to be carefull with those data since they might not be enough to make a clear conclusion as there are a lot of product where the field is not filled in
+
+# 3 - Saturated fat content in pizzas, pies, and quiches according to the Nutriscore.
+```{r echo=FALSE, message=FALSE}
+# Charger la bibliothèque ggplot2
+library(ggplot2)
+
+# Créer un diagramme en boîte des teneurs en graisses saturées dans les pizzas, tartes et quiches selon le nutriscore
+ggplot(gaua, aes(x = nutriscore_grade, y = saturated_fat_100g, fill = nutriscore_grade)) +
+  geom_boxplot() +
+  labs(title = "Saturated fat content in pizzas, pies, and quiches according to the Nutriscore.",
+       x = "Nutriscore Grade",
+       y = "Saturated fat") +
+  scale_fill_manual(values = nutriscore_colors) +
+  theme_minimal()
+
+```
+This boxplot shows the distribution of saturated fat content for each nutriscore category.
+
+We can observe a link between saturated fat content and the nutriscore.
+
+The higher the saturated fat content, the lower the nutriscores.
+
+Saturated fat content is therefore an important factor in calculating the score.
+
+# 4 - Bar chart of the percentage of vegetarian products in each nutriscore category
+
+```{r echo=FALSE, message=FALSE}
+# Nuage de points pour l'énergie et le Nutriscore coloré par catégorie (axes inversés)
+ggplot(gaua, aes(x = nutriscore_score, y = energy_100g, color = nutriscore_category)) +
+  geom_point() +
+  scale_color_manual(values = nutriscore_colors) +
+  labs(title = "Relationship between the enery and the Nutriscore-Grade",
+       x = "Nutriscore Score",
+       y = "Energy for 100g (kJ)") +
+  theme_minimal()
+
+```
+
+When Analyzing the relationship between kilojoules and Nutri-Score we can clearly see that there is a trend where product with a lower Nutriscore-Grade also have a lower energy intake than those with a higher Nutriscore-Grade nonetheless we also see points where the amount of energy is super high despite being supposedly "Healthier products" having a Nutriscore-Grade around the A metrics
+
+# 5 - Amount of sugar in pizzas, pies and quiches according to Nutriscore
+
+```{r echo=FALSE, message=FALSE}
+# Charger la bibliothèque ggplot2
+library(ggplot2)
+
+# Créer un diagramme en boîte de la quantité de sucre en fonction de la catégorie de Nutriscore
+ggplot(gaua, aes(x = nutriscore_grade, y = sugars_100g)) +
+  geom_boxplot(fill = "#3498db", color = "#2980b9") +
+  labs(title = "Amount of sugar in pizzas, pies and quiches according to Nutriscore",
+       x = "Nutriscore Grade",
+       y = "Amount of sugar (g/100g)")
+```
+This final graph shows the amount of sugar in pizzas, pies, and quiches according to Nutriscore.
+
+It can be seen that for the "A", "B", "C", and "D" categories, the amount of sugar does not seem to influence the Nutriscore.
+
+However, for the "E" category, there is a significant amount of sugar observed.
+
+Therefore, it can be concluded that a low sugar content will not positively influence the Nutriscore. However, a high sugar content will impact the score and result in an "E" category rating.
+
+
+# Conclusion
+
+To conclude and sum everything up.
+We can define that the Nutriscore is mostly impacted by the saturated fat and the amount of sugar in one product resulting in an increase of the amount of energy it brings to one's body, however a product being organic doesn't really affect it's Nutriscore rating
+
+Now regarding the food family we had to focus on which were Pizzas, quiches and Pies in the US, they are having two very differents dynamics in Nutriscore Rating, they either have a really good Nutriscore-Grade, such as A or B or a very bad one such as D, this huge difference could be explainened by the way pizza quiches and pie are mad, since they are a very diverse type of food, there are one made with healthier ingredient containing lower saturated fat and sugar, and others made with less healthier ingredient which impacts the nutriscore poorly and create those two dynamics when we study the nutriscore of this type of food
+
+
+
